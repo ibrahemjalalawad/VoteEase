@@ -1,0 +1,582 @@
+﻿@page
+@model VoterDashboardModel
+@{
+    ViewData["Title"] = "Voter Dashboard";
+}
+<head>
+    <style>
+        body {
+            background-image: url('/images/Light-blue.jpg');
+            background-size: cover; /* Adjusts the image to cover the entire background */
+            background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .list-group-item:hover {
+            background-color: #D4EBF8;
+        }
+
+        .webcam-container {
+            display: flex;
+            justify-content: center; /* Centers horizontally */
+            align-items: center; /* Centers vertically */
+            width: 100%;
+        }
+
+        video {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            max-width: 100%; /* Ensures the video fits within the container */
+            height: auto; /* Maintains the aspect ratio */
+        }
+        .candidate-link {
+            color: #007bff; /* Bootstrap primary color */
+            text-decoration: none; /* Remove underline */
+            font-weight: bold; /* Make it stand out */
+            transition: color 0.3s ease, text-shadow 0.3s ease; /* Smooth hover effect */
+        }
+
+            .candidate-link:hover {
+                color: #0056b3; /* Darker shade for hover */
+                text-decoration: underline; /* Add underline on hover */
+                text-shadow: 0px 0px 4px rgba(0, 123, 255, 0.5); /* Subtle glow effect */
+    </style>
+
+</head>
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand nav-section-link" asp-page="/Index" data-section="home">
+                <img src="/Images/Logo.jpg" alt="VoteEase Logo" style="height: 40px; margin-right: 5px; border-radius: 50%;">
+                VoteEase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Index" data-section="home">Home</a>
+                    </li>
+
+
+                </ul>
+                <div class="d-flex">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            @Model.UserName
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <form method="post" asp-page-handler="Logout">
+                                <button class="dropdown-item d-flex align-items-center" type="submit">
+                                    <i class="bi bi-power"></i>&nbsp; Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Sidebar Navigation -->
+            <div class="list-group">
+                <!-- Dashboard -->
+                <a href="#" class="list-group-item list-group-item-action py-3" onclick="showSection('default-section')">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+
+                <!-- Candidates -->
+                @if (!Model.CurrentElection.IsElectionActive)
+                {
+                    <!-- Disabled when election is inactive -->
+                    <div class="position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="Candidates can only be viewed during an active election.">
+                        <a href="#" class="list-group-item list-group-item-action disabled py-3">
+                            <i class="bi bi-person-badge"></i> Candidates
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <!-- Enabled when election is active -->
+                    <a href="#" class="list-group-item list-group-item-action py-3" onclick="showSection('candidates-section')">
+                        <i class="bi bi-person-badge"></i> Candidates
+                    </a>
+                }
+
+
+
+                <!-- Voting Instructions -->
+                <a href="#" class="list-group-item list-group-item-action py-3" onclick="showSection('instructions-section')">
+                    <i class="bi bi-book"></i> Voting Instructions
+                </a>
+
+                <!-- Election Results -->
+                @if (Model.CurrentElection.IsElectionActive)
+                {
+                    <!-- Disabled when election is active -->
+                    <div class="position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="Election results will be available after the election ends.">
+                        <a href="#" class="list-group-item list-group-item-action disabled py-3">
+                            <i class="bi bi-graph-up"></i> Election Results (Pending)
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <!-- Enabled when election is inactive -->
+                    <a href="#" class="list-group-item list-group-item-action py-3" onclick="showSection('results-section')">
+                        <i class="bi bi-graph-up"></i> Election Results
+                    </a>
+                }
+
+                <!-- Admin Panel -->
+                @if (Model.IsAdmin)
+                {
+                    <a asp-page="/AdminDashboard/AdminDashboard" class="list-group-item list-group-item-action text-primary py-3">
+                        <i class="bi bi-person-gear"></i> Admin Panel
+                    </a>
+                }
+            </div>
+
+        </div>
+
+        <div class="col-md-9">
+            <!-- Main Content -->
+            <div id="main-content">
+                <!-- Default Section -->
+                <div id="default-section">
+                    <h3>Election Status</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row m-0">
+                                <!-- Election Start Date -->
+                                <div class="card col-md-5">
+                                    <div class="card-body">
+                                        <div>
+                                            <h5><i class="bi bi-calendar"></i>&nbsp;Election Start Date</h5>
+                                            <hr />
+                                            <p>@Model.CurrentElection.StartDate.ToString("MMMM dd, yyyy")</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2"></div>
+
+                                <!-- Election End Date -->
+                                <div class="card col-md-5 ms-auto">
+                                    <div class="card-body">
+                                        <div>
+                                            <h5><i class="bi bi-calendar"></i>&nbsp;Election End Date</h5>
+                                            <hr />
+                                            <p>@Model.CurrentElection.EndDate.ToString("MMMM dd, yyyy")</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Empty Column for Spacing -->
+                            </div>
+
+                            <hr />
+                            @if (Model.CurrentElection.IsElectionActive)
+                            {
+                                <div class="alert alert-success" role="alert">
+                                    <h5>Status: Active</h5>
+                                    <p>You @(Model.HasVoted ? "have already cast your vote." : "can now cast your vote for one candidate.")</p>
+                                    @if (!Model.HasVoted)
+                                    {
+                                        <button class="btn btn-primary mt-3" onclick="showSection('candidates-section')">
+                                            View Candidates
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning" role="alert">
+                                    <h5>Status: Inactive</h5>
+                                    <p>The election is not active at the moment.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidates Section -->
+                <div id="candidates-section" style="display: none;">
+                    <h3>Candidates</h3>
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Bio</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var candidate in Model.Candidates)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@Url.Content("~/images/candidates/" + candidate.ImagePath)" alt="@candidate.FullName" class="img-thumbnail" style="width: 80px; height: auto;">
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(candidate.CandidateLink))
+                                        {
+                                            <a href="@candidate.CandidateLink" target="_blank" class="candidate-link">@candidate.FullName</a> }
+                                        else
+                                        {
+                                            @candidate.FullName
+                                        }
+                                    </td>
+                                    <td>@candidate.Bio</td>
+                                    <td>
+                                        @if (!Model.HasVoted)
+                                        {
+                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#voteModal-@candidate.Id">
+                                                Vote Now
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">You have already voted</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <!-- Modal -->
+                                <div class="modal fade" id="voteModal-@candidate.Id" tabindex="-1" aria-labelledby="voteModalLabel-@candidate.Id" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="voteModalLabel-@candidate.Id">Confirm Your Vote</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    @*Candidate Info*@
+                                                    <div class="col-md-12">
+                                                        <h5>Candidate: <strong>@candidate.FullName</strong></h5>
+                                                    </div>
+
+                                                    @*Webcam and Image Capture*@
+                                                    <div class="col-md-6">
+                                                        @*Webcam Section*@
+                                                        <div class="webcam-container">
+                                                            <video id="video-@candidate.Id" autoplay style="border: 2px solid #ddd; border-radius: 8px; width: 100%; height: auto;"></video>
+                                                            <canvas id="canvas-@candidate.Id" style="display: none;"></canvas>
+                                                        </div>
+
+                                                        @*Captured Image Preview*@
+                                                        <div id="captured-image-container-@candidate.Id" class="mt-3" style="display: none; text-align: center;">
+                                                            <img id="captured-image-@candidate.Id" src="" alt="Captured Image" style="border: 2px solid #ddd; border-radius: 8px; max-width: 100%; height: auto;">
+                                                            <p class="text-success mt-2">Image captured successfully! Confirm your vote below.</p>
+                                                        </div>
+
+                                                        @*Buttons*@
+                                                        <div class="text-center mt-2">
+                                                            <button type="button" class="btn btn-primary" id="capture-@candidate.Id" data-candidate-id="@candidate.Id">
+                                                                Capture Image
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary" id="recapture-@candidate.Id" style="display: none;">
+                                                                Re-Capture Image
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @*Modal Footer*@
+                                            <div class="modal-footer">
+                                                <form method="post" asp-page-handler="VoteNow">
+                                                    <input type="hidden" name="candidateId" value="@candidate.Id" />
+                                                    <input type="hidden" id="capturedImageData-@candidate.Id" name="capturedImageBase64" /> <!-- Updated name to match backend -->
+                                                    <button type="submit" class="btn btn-primary" id="confirmVoteButton-@candidate.Id" disabled>
+                                                        Confirm Vote
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--<div class="modal fade" id="voteModal-@candidate.Id" tabindex="-1" aria-labelledby="voteModalLabel-@candidate.Id" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="voteModalLabel-@candidate.Id">Confirm Your Vote</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Candidate: <strong>@candidate.FullName</strong></h5>
+                                    </div>
+                                    <div class="col-md-6">-->
+                                <!-- Webcam Section -->
+                                <!--<video id="video-@candidate.Id" autoplay style="border: 2px solid #ddd; border-radius: 8px; width: 100%; height: auto;"></video>
+                                            <canvas id="canvas-@candidate.Id" style="display: none;"></canvas>
+                                        </div>
+                                        <div class="col-md-6 text-center">
+                                            <div id="captured-image-container-@candidate.Id" style="display: none;">
+                                                <img id="captured-image-@candidate.Id" src="" alt="Captured Image" style="border: 2px solid #ddd; border-radius: 8px; max-width: 100%; height: auto;">
+                                                <p class="text-success mt-2">Image captured successfully! Confirm your vote below.</p>
+                                            </div>
+                                            <button type="button" class="btn btn-primary mt-3" id="capture-@candidate.Id">Capture Image</button>
+                                            <button type="button" class="btn btn-secondary mt-3" id="recapture-@candidate.Id" style="display: none;">Re-Capture</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <form method="post" asp-page-handler="VoteNow">
+                                        <input type="hidden" name="candidateId" value="@candidate.Id" />
+                                        <input type="hidden" id="capturedImageData-@candidate.Id" name="capturedImageBase64" />
+                                        <button type="submit" class="btn btn-primary" id="confirmVoteButton-@candidate.Id" disabled>Confirm Vote</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>-->
+
+
+
+
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Election Results Section -->
+                <div id="results-section" class="mt-4" style="display: none;">
+                    <h2>Election Results</h2>
+                    @if (Model.CurrentElection.IsElectionActive)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-circle"></i> The election is still ongoing. Results will be available after it concludes.
+                        </div>
+                    }
+                    else if (Model.WinningCandidates != null && Model.WinningCandidates.Any())
+                    {
+                        <div class="alert alert-success">
+                            <i class="bi bi-trophy"></i> The election has concluded! Here are the winning candidates:
+                        </div>
+                        <table class="table table-striped align-middle mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Candidate Name</th>
+                                    <th>Votes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var candidate in Model.WinningCandidates)
+                                {
+                                    <tr>
+                                        <td>
+                                            <img src="@Url.Content("~/images/candidates/" + candidate.ImagePath)" alt="@candidate.FullName" class="img-thumbnail" style="width: 80px; height: auto;">
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(candidate.CandidateLink))
+                                            {
+                                                <a href="@candidate.CandidateLink" target="_blank" class="candidate-link">@candidate.FullName</a> }
+                                            else
+                                            {
+                                                @candidate.FullName
+                                            }
+                                        </td>
+                                        <td>@candidate.VotesCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> No winners have been announced yet.
+                        </div>
+                    }
+                </div>
+
+
+                <!-- Instructions Section -->
+                <div id="instructions-section" style="display: none;" class="instructions-container p-4 mt-4 bg-light border rounded shadow-sm">
+                    <h3 class="mb-3"><i class="bi bi-list-check me-2"></i>Voting Instructions</h3>
+                    <hr />
+                    <p class="text-muted">Follow these steps to cast your vote:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-person-badge-fill text-success me-3"></i>
+                            <span>Browse the list of candidates and select one.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-cursor-fill text-primary me-3"></i>
+                            <span>Click the "Vote Now" button next to your chosen candidate.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-camera-fill text-warning me-3"></i>
+                            <span>
+                                Allow the browser to access your camera. Capture your image as part of the voting verification process.
+                                <br />
+                                <small class="text-muted">
+                                    Ensure your face is clearly visible and well-lit for accurate verification.
+                                </small>
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-file-earmark-check-fill text-secondary me-3"></i>
+                            <span>Review the captured image. If necessary, click "Re-Capture" to take a new photo.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill text-info me-3"></i>
+                            <span>Click "Confirm Vote" to submit your choice and complete the verification process.</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-start">
+                            <i class="bi bi-shield-check text-success me-3"></i>
+                            <span>Wait for a confirmation message indicating that your vote has been successfully cast.</span>
+                        </li>
+                    </ul>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+</div>
+
+
+<script>
+    function showSection(sectionId, event = null) {
+        if (event) {
+            event.preventDefault(); // Prevent default action if an event is passed
+        }
+
+        // Hide all sections
+        document.querySelectorAll('#main-content > div, div[id$="-section"]').forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Show the selected section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.style.display = 'block';
+        } else {
+            console.warn(`Section with ID "${sectionId}" not found.`);
+        }
+    }
+
+    // Initialize all tooltips on the page
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize webcam for all modals
+        document.querySelectorAll('[id^="voteModal-"]').forEach(modal => {
+            const candidateId = modal.id.split('-')[1];
+            const video = document.getElementById(`video-${candidateId}`);
+            const canvas = document.getElementById(`canvas-${candidateId}`);
+            const captureButton = document.getElementById(`capture-${candidateId}`);
+            const recaptureButton = document.getElementById(`recapture-${candidateId}`);
+            const imageDataInput = document.getElementById(`capturedImageData-${candidateId}`);
+            const capturedImageContainer = document.getElementById(`captured-image-container-${candidateId}`);
+            const capturedImage = document.getElementById(`captured-image-${candidateId}`);
+            const confirmVoteButton = document.getElementById(`confirmVoteButton-${candidateId}`);
+
+            // Start the webcam when the modal is shown
+            modal.addEventListener('show.bs.modal', () => {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        video.srcObject = stream;
+                    })
+                    .catch(err => {
+                        console.error(`Error accessing webcam: ${err.message}`);
+                        alert("Unable to access the camera. Please check your browser permissions.");
+                    });
+            });
+
+            // Stop the webcam when the modal is hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                const stream = video.srcObject;
+                if (stream) {
+                    const tracks = stream.getTracks();
+                    tracks.forEach(track => track.stop());
+                }
+                video.srcObject = null;
+
+                // Reset the modal state
+                capturedImageContainer.style.display = "none";
+                captureButton.style.display = "inline-block";
+                recaptureButton.style.display = "none";
+                confirmVoteButton.disabled = true;
+                imageDataInput.value = ""; // Clear the hidden input
+            });
+
+            // Capture the image
+            captureButton.addEventListener('click', function () {
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Convert the canvas to a Base64 image string
+                const imageData = canvas.toDataURL('image/jpeg');
+                imageDataInput.value = imageData; // Store the captured image data in a hidden input
+
+                // Display the captured image
+                capturedImage.src = imageData;
+                capturedImageContainer.style.display = "block";
+
+                // Update button states
+                captureButton.style.display = "none";
+                recaptureButton.style.display = "inline-block";
+                confirmVoteButton.disabled = false;
+            });
+
+            // Re-Capture the image
+            recaptureButton.addEventListener('click', function () {
+                capturedImageContainer.style.display = "none";
+                captureButton.style.display = "inline-block";
+                recaptureButton.style.display = "none";
+                confirmVoteButton.disabled = true;
+                imageDataInput.value = ""; // Clear the hidden input
+            });
+        });
+    });
+
+
+
+
+
+
+</script>

@@ -1,0 +1,166 @@
+﻿@page
+@model OSVS.Pages.Register.RegisterModel
+@{
+    ViewData["Title"] = "Register - VoteEase";
+    var isNationalIdVerified = TempData["IsNationalIdVerified"] as bool? ?? false;
+}
+
+<head>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-image: url('/images/Light-blue.jpg');
+            background-size: cover; /* Adjusts the image to cover the entire background */
+            background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand nav-section-link" asp-page="/Index" data-section="home">
+                <img src="/Images/Logo.jpg" alt="VoteEase Logo" style="height: 40px; margin-right: 5px; border-radius: 50%;">
+                VoteEase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Index" data-section="home">Home</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a asp-page="/Login/Login" class="btn btn-outline-primary me-2">Login</a>
+                    <a asp-page="/Register/Register" class="btn btn-primary">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Register</h2>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm" method="post">
+                        <div id="form-content">
+                            <div id="form-errors" class="text-danger">
+                                @Html.ValidationSummary() <!-- Error summary to show errors at the top -->
+                            </div>
+
+                            @if (!isNationalIdVerified)
+                            {
+                                <div class="mb-3">
+                                    <label asp-for="Input.NationalId" class="form-label">National ID</label>
+                                    <input asp-for="Input.NationalId" class="form-control" autocomplete="off" />
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Verify National ID</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="Input.NationalId" />
+
+                                <div class="mb-3">
+                                    <label asp-for="Input.Password" class="form-label">Password</label>
+                                    <input asp-for="Input.Password" class="form-control" type="password" />
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Register</button>
+                                </div>
+                            }
+                        </div>
+                        <!-- Success Modal -->
+                        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title" id="successModalLabel">Registration Successful</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        You have registered successfully! Click below to log in.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a asp-page="/Login/Login" class="btn btn-primary">Go to Login</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>Already have an account? <a asp-page="/Login/Login">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var errorMessage = TempData["ErrorMessage"] as string;
+                }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p>@errorMessage</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <a asp-page="/Login/Login" class="btn btn-primary">Go to Login</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Show the success modal if it was triggered
+            if ('@TempData["ShowSuccessModal"]' === 'True') {
+                var successModal = new bootstrap.Modal(document.getElementById("successModal"));
+                successModal.show();
+            }
+
+            // Show the error modal if there is an error message
+            var errorMessage = '@TempData["ErrorMessage"]';
+            if (errorMessage) {
+                $('#errorModal').modal('show');
+                // Optionally, you can clear the TempData after showing
+                // TempData.Remove("ErrorMessage");
+            }
+        });
+    </script>
+}
+
+

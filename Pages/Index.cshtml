@@ -1,0 +1,326 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteEase - Empowering Jordanian Democracy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-image: url('/images/Light-blue.jpg');
+            background-size: cover; /* Adjusts the image to cover the entire background */
+            background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            display: none;
+            padding: 50px 0;
+            min-height: 70vh;
+        }
+
+            .section.active {
+                display: block;
+            }
+
+        .card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 2px 6px 8px rgba(0,0,0,0.1);
+        }
+
+            .card:hover {
+                transform: translateY(-10px);
+            }
+
+        #contact .contact-info {
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+            .section-title::after {
+                content: '';
+                display: block;
+                width: 150px;
+                height: 3px;
+                background-color: var(--primary-color);
+                margin: 10px auto;
+            }
+
+        .gapB {
+
+        height:100px;
+        }
+
+
+
+        
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand nav-section-link" href="#" data-section="home">
+                    <img src="images/Logo.jpg" alt="VoteEase Logo"  style="height: 40px; margin-right: 5px; border-radius: 50%;">
+                    VoteEase
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link nav-section-link" href="#" data-section="home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-section-link" href="#" data-section="about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-section-link" href="#" data-section="contact">Contact</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        @if (Model.IsLoggedIn)
+                        {
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @Model.UserName
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" asp-page="Dashboard/VoterDashboard">Dashboard</a>
+                                    <hr class="dropdown-divider">
+                                    <form method="post" asp-page-handler="Logout">
+                                        <button class="dropdown-item d-flex align-items-center" type="submit">
+                                            <i class="bi bi-power"></i>&nbsp; Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-page="/Login/Login" class="btn btn-outline-primary me-2">Login</a>
+                            <a asp-page="/Register/Register" class="btn btn-primary">Register</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active text-center container">
+            <div class="row py-lg-5">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <h1 class="fw-light section-title">Make Your Voice Heard</h1>
+                    <p class="lead text-muted">VoteEase empowers citizens to participate in the Jordanian parliamentary elections effortlessly.</p>
+                    <p>
+                        <a href="#" class="btn btn-primary my-2 nav-section-link" data-section="about">Learn More</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body card-info">
+                                <h5 class="card-title"><i class="bi bi-check-circle-fill text-success me-2"></i>Easy Participation</h5>
+                                <p class="card-text">Voting has never been easier. Cast your vote online with a simple, user-friendly process.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Secure and Transparent</h5>
+                                <p class="card-text">VoteEase ensures fairness and security using state-of-the-art encryption.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-graph-up-arrow text-info me-2"></i>Live Election Updates</h5>
+                                <p class="card-text">Stay informed with real-time updates and results as votes are tallied.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gapB"></div>
+
+                <!-- Restored "Ready to Vote" section -->
+                <div class="text-center ">
+                    <h3>Ready to vote?</h3>
+                    <p class="lead">Take part in shaping the future of Jordan. Your vote matters!</p>
+                    @if (Model.IsLoggedIn)
+                    {
+                        <a asp-page="Dashboard/VoterDashboard" class="btn btn-lg btn-primary">Got to Dashboard</a>
+                    }
+                    else
+                    {
+                        <a asp-page="/Register/Register" class="btn btn-lg btn-primary">Register to Vote</a>
+
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section text-center">
+            <div class="container pt-4">
+                <h1 class="section-title">About VoteEase</h1>
+                <p class="lead text-muted">VoteEase is a platform designed exclusively for the Jordanian parliamentary elections. Our mission is to provide a secure, transparent, and accessible voting experience for all eligible citizens.</p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <i class="bi bi-person-check fs-1 text-success"></i>
+                        <h4>Voter Registration</h4>
+                        <p>Quickly register to participate in the elections with a hassle-free process.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="bi bi-file-lock fs-1 text-primary"></i>
+                        <h4>Secure Data</h4>
+                        <p>Your information and votes are protected with the latest encryption technologies.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="bi bi-award fs-1 text-info"></i>
+                        <h4>Integrity</h4>
+                        <p>We adhere to the highest standards to ensure fairness in every election.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 contact-info">
+                    <h1 class="section-title">Contact Us</h1>
+                    <p class="lead text-muted text-center mb-4">We're here to help you with any questions or concerns about the VoteEase platform.</p>
+
+                    <div class="text-center">
+                        <h4><i class="bi bi-telephone-fill me-2 text-primary"></i>Support Hotline</h4>
+                        <p class="fs-5">+962 (77) 840 1502</p>
+
+                        <p class="mt-4">Our support team is available Monday to Friday, 8:00 AM to 4:00 PM (Jordan Local Time). We're committed to ensuring a smooth voting experience for all citizens.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class=" mt-5 py-3">
+        <div class="container">
+            <p class="text-center text-muted">© 2025 VoteEase. Empowering Democracy for Jordan.</p>
+        </div>
+    </footer>
+
+    <script>
+
+        // Check if a tab identifier exists in sessionStorage
+        let tabIdentifier = sessionStorage.getItem('tabIdentifier');
+        if (!tabIdentifier) {
+            // Generate a new tab identifier if it doesn't exist
+            tabIdentifier = Math.random().toString(36).substr(2, 9); // Generates a unique string
+            sessionStorage.setItem('tabIdentifier', tabIdentifier);
+        }
+
+        // Ensure every request includes the Tab Identifier
+        const addTabIdentifierToRequests = () => {
+            const originalFetch = window.fetch;
+
+            window.fetch = (input, init = {}) => {
+                init.headers = {
+                    ...init.headers,
+                    'X-Tab-Identifier': tabIdentifier,
+                };
+                return originalFetch(input, init);
+            };
+
+            // Add Tab Identifier to XMLHttpRequests
+            const open = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url) {
+                this.setRequestHeader('X-Tab-Identifier', tabIdentifier);
+                open.apply(this, arguments);
+            };
+        };
+
+        // Initialize request interception
+        addTabIdentifierToRequests();
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const sectionLinks = document.querySelectorAll('.nav-section-link');
+            const sections = document.querySelectorAll('.section');
+
+            sectionLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+
+                    // Hide all sections
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+
+                    // Show target section
+                    document.getElementById(targetSection).classList.add('active');
+
+                    // Update active nav link
+                    sectionLinks.forEach(navLink => {
+                        navLink.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+        });
+
+       
+
+
+
+
+    </script>
+</body>
+</html>

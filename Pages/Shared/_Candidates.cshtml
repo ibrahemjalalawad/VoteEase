@@ -1,0 +1,61 @@
+﻿@model OSVS.Pages.Dashboard.VoterDashboardModel
+
+<h5 class="mt-4">Candidates</h5>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Bio</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var candidate in Model.Candidates)
+        {
+            <tr>
+                <td>
+                    <img src="@candidate.ImagePath" alt="Candidate Image" style="width: 100px; height: auto;" />
+                </td>
+                <td>@candidate.FullName</td>
+                <td>@candidate.Bio</td>
+                <td>
+                    @if (!Model.HasVoted)
+                    {
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#voteModal-@candidate.Id">
+                            Vote Now
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="text-muted">You have already voted</span>
+                    }
+                </td>
+            </tr>
+            <!-- Modal -->
+            <div class="modal fade" id="voteModal-@candidate.Id" tabindex="-1" aria-labelledby="voteModalLabel-@candidate.Id" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="voteModalLabel-@candidate.Id">Confirm Your Vote</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to vote for <strong>@candidate.FullName</strong>?
+                            <p>@candidate.Bio</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" asp-page-handler="VoteNow">
+                                <input type="hidden" name="candidateId" value="@candidate.Id" />
+                                <button type="submit" class="btn btn-primary">
+                                    Vote Now
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </tbody>
+</table>

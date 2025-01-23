@@ -1,0 +1,114 @@
+﻿@page
+@model OSVS.Pages.Login.LoginModel
+@{
+    ViewData["Title"] = "Log in - VoteEase";
+}
+
+<head>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-image: url('/images/Light-blue.jpg');
+            background-size: cover; /* Adjusts the image to cover the entire background */
+            background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand nav-section-link" asp-page="/Index" data-section="home">
+                <img src="/Images/Logo.jpg" alt="VoteEase Logo" style="height: 40px; margin-right: 5px; border-radius: 50%;">
+                VoteEase
+            </a>            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Index" data-section="home">Home</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a asp-page="/Login/Login" class="btn btn-outline-primary me-2">Login</a>
+                    <a asp-page="/Register/Register" class="btn btn-primary">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Log in</h2>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm" method="post">
+                        <div id="form-errors" class="text-danger">
+                            @Html.ValidationSummary() <!-- Error summary to show errors at the top -->
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.NationalId" class="form-label">National ID</label>
+                            <input asp-for="Input.NationalId" class="form-control" autocomplete="username" aria-required="true" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label">Password</label>
+                            <input asp-for="Input.Password" class="form-control" type="password" autocomplete="current-password" aria-required="true" />
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Log in</button>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <a asp-page="/ForgotPassword/ForgotPassword">Forgot Password?</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>Don't have an account? <a asp-page="/Register/Register">Register</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <!-- Rest of the login form here -->
+    <!-- Toast notification for success message -->
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 p-3" role="alert" aria-live="assertive" aria-atomic="true" style="display: none;">
+        <div class="d-flex">
+            <div class="toast-body">
+                Login successful! Redirecting to dashboard...
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Check if there's a success flag for login
+            if ('@TempData["ShowSuccessNotification"]' === 'True') {
+                var successToast = document.getElementById('successToast');
+                successToast.style.display = 'block';  // Show the toast
+                new bootstrap.Toast(successToast).show();
+
+                // Redirect to the dashboard after a brief delay
+                setTimeout(function () {
+                    window.location.href = '/Dashboard/VoterDashboard';  // Adjust this path as needed
+                }, 1500);
+            }
+        });
+    </script>
+}
+

@@ -1,0 +1,560 @@
+﻿@page
+@model OSVS.Pages.AdminDashboard.AdminDashboardModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<head>
+    <style>
+        body {
+            background-image: url('/images/Light-blue.jpg');
+            background-size: cover; /* Adjusts the image to cover the entire background */
+            background-repeat: no-repeat; /* Ensures the image doesn't repeat */
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .d-none {
+            display: none !important;
+        }
+        .candidate-link {
+            color: #007bff; /* Bootstrap primary color */
+            text-decoration: none; /* Remove underline */
+            font-weight: bold; /* Make it stand out */
+            transition: color 0.3s ease, text-shadow 0.3s ease; /* Smooth hover effect */
+        }
+
+            .candidate-link:hover {
+                color: #0056b3; /* Darker shade for hover */
+                text-decoration: underline; /* Add underline on hover */
+                text-shadow: 0px 0px 4px rgba(0, 123, 255, 0.5); /* Subtle glow effect */
+    </style>
+</head>
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand nav-section-link" asp-page="/Index" data-section="home">
+                <img src="/Images/Logo.jpg" alt="VoteEase Logo" style="height: 40px; margin-right: 5px; border-radius: 50%;">
+                VoteEase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Index" data-section="home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Dashboard/VoterDashboard">Dashboard</a>
+                    </li>
+
+
+                </ul>
+                <div class="d-flex">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            @Model.UserName
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <form method="post" asp-page-handler="Logout">
+                                <button class="dropdown-item d-flex align-items-center" type="submit">
+                                    <i class="bi bi-power"></i>&nbsp; Logout
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Search Section -->
+<h4 class="pt-5">Search for People</h4>
+<form method="post" asp-page-handler="Search">
+    <div class="form-group">
+        <label for="Search">Search by Name or National ID:</label>
+        <input type="text" id="Search" class="form-control" name="Search" value="@Model.Search" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Search</button>
+</form>
+
+
+
+<!-- Display Search Results -->
+@if (Model.SearchResults.Any())
+{
+    <h5 class="mt-4">Search Results</h5>
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>National ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in Model.SearchResults)
+            {
+                <tr>
+                    <td><img src="@Url.Content("~/images/candidates/" + person.ImagePath)" alt="@person.FullName" class="img-thumbnail" style="width: 80px; height: auto;"></td>
+                    <td>@person.FullName</td>
+                    <td>@person.NationalNo</td>
+                    <td>
+                        <!-- Add Candidate Modal Trigger -->
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCandidateModal" data-person-id="@person.Id" data-person-name="@person.FullName">
+                            Add Candidate
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- Display Existing Candidates -->
+<h4 class="mt-5 pt-5">Existing Candidates</h4>
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Bio</th>
+            <th>Votes</th>
+            <th>Is Winner</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var candidate in Model.Candidates)
+        {
+            <tr>
+                <td>
+                    <img src="@Url.Content("~/images/candidates/" + candidate.ImagePath)" alt="@candidate.FullName" class="img-thumbnail" style="width: 80px; height: auto;">
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(candidate.CandidateLink))
+                    {
+                        <a href="@candidate.CandidateLink" target="_blank" class="candidate-link">@candidate.FullName</a> }
+                    else
+                    {
+                        @candidate.FullName
+                    }
+                </td>
+                <td>
+                    <!-- Bio Section -->
+                    <div class="bio-edit-section">
+                        <!-- Static Bio Text -->
+                        <p class="candidate-bio">@candidate.Bio</p>
+
+                        <!-- Editable Bio Input -->
+                        <form method="post" asp-page-handler="UpdateBio" class="d-inline">
+                            <input type="hidden" name="CandidateId" value="@candidate.Id" />
+                            <textarea class="form-control edit-bio-input d-none" name="UpdatedBio"></textarea>
+
+                            <div class="mt-2">
+                                <!-- Confirm Button -->
+                                <button type="submit" class="btn btn-sm btn-success confirm-edit-btn d-none">
+                                    Confirm
+                                </button>
+
+                                <!-- Cancel Button -->
+                                <button type="button" class="btn btn-sm btn-danger cancel-edit-btn d-none">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </td>
+                <td>@candidate.VotesCount</td>
+                <td>@(candidate.IsWinner ? "Yes" : "No")</td>
+                <td>
+                    <!-- Edit Button -->
+                    <button type="button" class="btn btn-sm btn-primary edit-bio-btn">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <!-- Mark as Winner / Unmark as Winner Button -->
+                    <button type="button"
+                            class="btn btn-sm @(candidate.IsWinner ? "btn-warning" : "btn-success")"
+                            data-bs-toggle="modal"
+                            data-bs-target="#toggleWinnerModal"
+                            data-candidate-id="@candidate.Id"
+                            data-candidate-name="@candidate.FullName"
+                            data-action="@(candidate.IsWinner ? "Unmark" : "Mark")">
+                        @(candidate.IsWinner ? "Unmark as Winner" : "Mark as Winner")
+                    </button>
+
+                    <!-- Remove Candidate Button -->
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#removeCandidateModal" data-candidate-id="@candidate.Id" data-candidate-name="@candidate.FullName">
+                        Remove
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@if (Model.CurrentElection.IsElectionActive)
+{
+    <!-- Trigger Button -->
+    <form method="post" asp-page-handler="AnnounceResults">
+        <button type="button"
+                class="btn btn-primary mt-3"
+                data-bs-toggle="modal"
+                data-bs-target="#announceResultsModal">
+            Announce Results
+        </button>
+    </form>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="announceResultsModal" tabindex="-1" aria-labelledby="announceResultsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="announceResultsModalLabel">Confirm Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to announce the results? This action will end the election and cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" asp-page-handler="AnnounceResults">
+                        <button type="submit" class="btn btn-danger">Yes, Announce Results</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top" title="Election results have already been announced.">
+        <button type="button" class="btn btn-outline-primary mt-3 disabled">
+            Announce Results
+        </button>
+    </div>
+}
+
+<!-- Control Election Status and Date Button -->
+<button type="button" class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#controlElectionModal">
+    Control Election Status and Dates
+</button>
+
+<!-- Control Election Modal -->
+<div class="modal fade" id="controlElectionModal" tabindex="-1" aria-labelledby="controlElectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="controlElectionModalLabel">Update Election Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="UpdateElection">
+                    <div class="form-group">
+                        <label for="ElectionStatus">Election Status</label>
+                        <select id="ElectionStatus" name="IsElectionActive" class="form-control">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label for="StartDate">Start Date</label>
+                        <input type="date" id="StartDate" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="form-group mt-2">
+                        <label for="EndDate">End Date</label>
+                        <input type="date" id="EndDate" name="EndDate" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-success mt-3 float-end">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clear All Candidates and Votes Button -->
+<button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#clearCandidatesModal">
+    Clear All Candidates and Votes
+</button>
+
+<!-- Clear Candidates Modal -->
+<div class="modal fade" id="clearCandidatesModal" tabindex="-1" aria-labelledby="clearCandidatesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearCandidatesModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear all candidates and their votes? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-page-handler="ClearCandidates">
+                    <button type="submit" class="btn btn-danger">Yes, Clear All</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="successModalLabel">Success</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@TempData["SuccessMessage"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@TempData["ErrorMessage"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+
+<!-- Error Messages -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+<!-- Modal for Adding a Candidate -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1" aria-labelledby="addCandidateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCandidateModalLabel">Confirm Add Candidate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to add <span id="candidateNameForAdd"></span> as a candidate?</p>
+                <form method="post" asp-page-handler="AddCandidate">
+                    <input type="hidden" id="candidateIdForAdd" name="CandidateId" />
+                    <div class="form-group">
+                        <label for="Bio">Enter Bio</label>
+                        <textarea id="Bio" name="Bio" class="form-control mb-2" placeholder="Enter candidate bio"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="CandidateLink">Enter Candidate Link</label>
+                        <textarea id="CandidateLink" name="CandidateLink" class="form-control mb-2" placeholder="Enter suitable link"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Yes, Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Removing a Candidate -->
+<div class="modal fade" id="removeCandidateModal" tabindex="-1" aria-labelledby="removeCandidateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeCandidateModalLabel">Confirm Remove Candidate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <span id="candidateNameForRemove"></span> as a candidate?</p>
+                <form method="post" asp-page-handler="RemoveCandidate">
+                    <input type="hidden" id="candidateIdForRemove" name="CandidateId" />
+                    <button type="submit" class="btn btn-danger">Yes, Remove</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Confirming Mark/Unmark as Winner -->
+<div class="modal fade" id="toggleWinnerModal" tabindex="-1" aria-labelledby="toggleWinnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toggleWinnerModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to <span id="toggleWinnerAction"></span> <span id="toggleWinnerCandidate"></span> as a winner?</p>
+                <form method="post" asp-page-handler="ToggleWinner">
+                    <input type="hidden" id="toggleWinnerCandidateId" name="CandidateId" />
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Confirming Announce Results -->
+<div class="modal fade" id="announceResultsModal" tabindex="-1" aria-labelledby="announceResultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="announceResultsModalLabel">Confirm Announce Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to announce the results and end the election? This action cannot be undone.</p>
+                <form method="post" asp-page-handler="AnnounceResults">
+                    <button type="submit" class="btn btn-primary">Announce Results</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Scripts for dynamically setting modal content -->
+<script>
+    // For Add Candidate Modal
+    const addCandidateModal = document.getElementById('addCandidateModal');
+    addCandidateModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const candidateId = button.getAttribute('data-person-id');
+        const candidateName = button.getAttribute('data-person-name');
+
+        const candidateNameElement = document.getElementById('candidateNameForAdd');
+        const candidateIdInput = document.getElementById('candidateIdForAdd');
+
+        candidateNameElement.textContent = candidateName;
+        candidateIdInput.value = candidateId;
+    });
+
+    // For Remove Candidate Modal
+    const removeCandidateModal = document.getElementById('removeCandidateModal');
+    removeCandidateModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const candidateId = button.getAttribute('data-candidate-id');
+        const candidateName = button.getAttribute('data-candidate-name');
+
+        const candidateNameElement = document.getElementById('candidateNameForRemove');
+        const candidateIdInput = document.getElementById('candidateIdForRemove');
+
+        candidateNameElement.textContent = candidateName;
+        candidateIdInput.value = candidateId;
+    });
+
+    const toggleWinnerModal = document.getElementById('toggleWinnerModal');
+    toggleWinnerModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const candidateId = button.getAttribute('data-candidate-id');
+        const candidateName = button.getAttribute('data-candidate-name');
+        const action = button.getAttribute('data-action');
+
+        const candidateNameElement = document.getElementById('toggleWinnerCandidate');
+        const actionElement = document.getElementById('toggleWinnerAction');
+        const candidateIdInput = document.getElementById('toggleWinnerCandidateId');
+
+        candidateNameElement.textContent = candidateName;
+        actionElement.textContent = action;
+        candidateIdInput.value = candidateId;
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('successModal')) {
+            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        }
+
+        if (document.getElementById('errorModal')) {
+            var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".edit-bio-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const section = this.closest("tr").querySelector(".bio-edit-section");
+                const bioText = section.querySelector(".candidate-bio");
+                const bioInput = section.querySelector(".edit-bio-input");
+                const confirmButton = section.querySelector(".confirm-edit-btn");
+                const cancelButton = section.querySelector(".cancel-edit-btn");
+
+                // Show input and buttons, hide static bio text and edit button
+                bioText.classList.add("d-none");
+                bioInput.classList.remove("d-none");
+                bioInput.value = bioText.textContent.trim();
+                this.classList.add("d-none");
+                confirmButton.classList.remove("d-none");
+                cancelButton.classList.remove("d-none");
+            });
+        });
+
+        document.querySelectorAll(".cancel-edit-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const section = this.closest(".bio-edit-section");
+                const bioText = section.querySelector(".candidate-bio");
+                const bioInput = section.querySelector(".edit-bio-input");
+                const editButton = this.closest("tr").querySelector(".edit-bio-btn");
+                const confirmButton = section.querySelector(".confirm-edit-btn");
+
+                // Revert changes
+                bioText.classList.remove("d-none");
+                bioInput.classList.add("d-none");
+                editButton.classList.remove("d-none");
+                confirmButton.classList.add("d-none");
+                this.classList.add("d-none");
+            });
+        });
+    });
+
+
+
+
+
+</script>
